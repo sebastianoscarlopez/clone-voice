@@ -1,0 +1,13 @@
+.venv/
+__pycache__/
+*.pyc
+*.pt
+data/output/*
+!data/output/.gitkeep
+data/reference/*.wav
+data/reference/*.m4a
+data/reference/*.mp3
+!data/reference/.gitkeep
+.vscode/
+.idea/
+*.egg-info/
