@@ -12,16 +12,15 @@ from src.config import CACHE_DIR, XTTS_MODEL
 
 
 class VoiceCloner:
-    def __init__(self, ref_audio: Path, language: str = "es", use_fp16: bool = True):
+    def __init__(self, ref_audio: Path, language: str = "es", use_fp16: bool = False):
+        # NOTE: use_fp16 kept for API compatibility but currently unused.
+        # XTTS v2 has FP16 incompatibilities in the speaker encoder conv1d
+        # filter and in GPT layer norms. Runs FP32 only for now.
         self.language = language
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
 
         tts = TTS(XTTS_MODEL, progress_bar=True).to(self.device)
         self.model = tts.synthesizer.tts_model
-
-        if use_fp16 and self.device == "cuda":
-            self.model.half()
-
         self.output_sr = self.model.config.audio.output_sample_rate
 
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
@@ -43,7 +42,10 @@ class VoiceCloner:
                 cache_path,
             )
 
+
     def synthesize(self, text: str, out_path: Path, temperature: float = 0.7) -> Path:
+        if self.device == "cuda":
+            torch.cuda.reset_peak_memory_stats()
         with torch.inference_mode():
             result = self.model.inference(
                 text=text,
@@ -56,6 +58,8 @@ class VoiceCloner:
         out_path.parent.mkdir(parents=True, exist_ok=True)
         sf.write(str(out_path), wav, self.output_sr)
         if self.device == "cuda":
+            peak_gb = torch.cuda.max_memory_allocated() / 1e9
+            print(f"peak VRAM this call: {peak_gb:.2f} GB")
             torch.cuda.empty_cache()
         return out_path
 

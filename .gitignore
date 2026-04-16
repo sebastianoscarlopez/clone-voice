@@ -1,13 +1,38 @@
+# Python
 .venv/
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Model / tensor caches
 *.pt
-data/output/*
-!data/output/.gitkeep
-data/reference/*.wav
-data/reference/*.m4a
-data/reference/*.mp3
-!data/reference/.gitkeep
+*.pth
+*.ckpt
+*.safetensors
+
+# Audio (never commit voice samples — privacy + size)
+*.wav
+*.mp3
+*.m4a
+*.flac
+*.ogg
+*.aac
+
+# Generated output + caches
+data/output/
+data/cache/
+!data/**/.gitkeep
+
+# Logs
+*.log
+
+# Editors / OS
 .vscode/
 .idea/
-*.egg-info/
+.DS_Store
+Thumbs.db
+
+# Claude Code local config
+.claude/
