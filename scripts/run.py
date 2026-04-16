@@ -1,8 +1,35 @@
 """CLI: clone a voice from a reference audio and synthesize text."""
 import argparse
+import glob
+import os
+import shutil
 import sys
 import tempfile
 from pathlib import Path
+
+
+def _ensure_ffmpeg_on_path() -> None:
+    if shutil.which("ffmpeg"):
+        return
+    home = Path.home()
+    candidates: list[Path] = []
+    candidates.extend(
+        Path(p) for p in glob.glob(
+            str(home / "AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg_*/ffmpeg-*/bin")
+        )
+    )
+    candidates.extend([
+        Path(r"C:/Program Files/ffmpeg/bin"),
+        Path(r"C:/ffmpeg/bin"),
+        Path(r"C:/ProgramData/chocolatey/bin"),
+    ])
+    for c in candidates:
+        if (c / "ffmpeg.exe").exists():
+            os.environ["PATH"] = str(c) + os.pathsep + os.environ.get("PATH", "")
+            return
+
+
+_ensure_ffmpeg_on_path()
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
